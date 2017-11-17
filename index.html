@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Игра</title>
+	<style>
+		body {
+			background-color: #f7f7f7;
+		}
+
+		#content {
+			width: 600px;
+			margin: 0 auto;
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		#content .block {
+			width: calc(25% - 2px);
+			height: 150px;
+			border: 1px solid black;
+			background-color: white;
+			cursor: pointer;
+			transition: 1s ease;
+		}
+
+		#content .red {
+			background-color: rgba(255,0,0,0.5);
+			transition: 1s ease;
+		}
+
+		#content .green {
+			background-color: rgba(0,255,0,0.5);
+			transition: 1s ease;
+		}
+
+		#content .block img {
+			max-width: 100%;
+			max-height: 150px;
+		}
+	</style>
+</head>
+<body>
+	<div id="content">
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+		<div class="block"></div>
+	</div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script>
+		function randomGame(min = 0, max) {
+			return Math.floor(min + Math.random() * (max + 1 - min));
+		}
+
+		function bust(arr, max) {
+			for(let i = 0; i < arr.length; i++){
+				for(let j = i + 1; j < arr.length; j++){
+					if(arr[i] == arr[j]){
+						arr[j] = randomGame(0,max);
+						i = 0;
+						j = 0;
+					}
+				}
+			}
+		}
+
+		$(function(){
+			let settings = { step: 8, deceleration: 250, countBlocks: 16 };
+
+			let urlImg = [];
+
+			urlImg.push("img/apple.jpg");
+			urlImg.push("img/banan.jpg");
+			urlImg.push("img/dukat.jpg");
+			urlImg.push("img/orange.png");
+			urlImg.push("img/stul.jpg");
+			urlImg.push("img/table.jpg");
+			urlImg.push("img/vino.jpg");
+			urlImg.push("img/window.jpg");
+
+			let hide = 0;
+
+			let step = 0;
+
+			let firstImg = null;
+			let secondImg = null;
+
+			let blocks = $('#content .block');
+
+			function start() {
+
+				hide = 0;
+
+				step = 0;
+				
+				let images = [];
+
+				for (let i = 0; i < settings.countBlocks / 2; i++)
+					images.push(randomGame(0,settings.countBlocks / 2 - 1));
+
+				bust(images, settings.countBlocks / 2 - 1);
+
+				let imagesPos = [];
+
+
+				for(let i = 0; i < settings.countBlocks; i++)
+					imagesPos.push(randomGame(0,settings.countBlocks - 1));
+
+				bust(imagesPos, settings.countBlocks - 1);
+
+				
+				for(let i = 0, j = 0; i < urlImg.length; i++){
+					$(blocks[imagesPos[j++]]).empty().append('<img src="' + urlImg[images[i]] + '" alt="" />');
+					$(blocks[imagesPos[j++]]).empty().append('<img src="' + urlImg[images[i]] + '" alt="" />');
+				}
+
+				firstImg = null;
+				secondImg = null;
+
+				setTimeout(function(){
+					//
+					$('img', blocks).hide(settings.deceleration);
+					hide = 1;
+				}, 5000);
+			}
+
+			start();
+
+			$(blocks).click(function(){
+				if(hide && $('img', this).css('display') == 'none'){
+					$('img', this).show(settings.deceleration);
+					if(firstImg == null) firstImg = this;
+					else secondImg = this;
+					if(secondImg != null && $('img', firstImg).attr('src') != $('img', secondImg).attr('src')){
+						hide = 0;
+						$(firstImg).addClass('red');
+						$(secondImg).addClass('red');
+						setTimeout(function(){
+							$(firstImg).removeClass('red');
+							$(secondImg).removeClass('red');
+							$('img', firstImg).hide(settings.deceleration);
+							$('img', secondImg).hide(settings.deceleration);
+							firstImg = null;
+							secondImg = null;
+							hide = 1;
+						}, 500);
+					}
+					else if(secondImg != null) {
+						firstImg = null;
+						secondImg = null;
+						step++;
+						if(step == settings.step){
+							$(blocks).addClass('green');
+							setTimeout(function(){
+								$(blocks).removeClass('green');
+								$('img', blocks).hide(settings.deceleration);
+								step = 0;
+								start();
+							}, 1000);
+						}
+					}
+				}
+			});
+		});
+	</script>
+</body>
+</html>
